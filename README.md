@@ -23,6 +23,9 @@ I will try to keep adding to this list as I go.  For now here is a short list of
 
 ```scala
 val texInfo = Drawable.loadGLTexture(imgPath)
+
+val w = 2
+val h = 2
         
 val verts = Array(-0.5f*w,  0.5f*h, 0.0f,   // top left
                 -0.5f*w, -0.5f*h, 0.0f,   // bottom left
@@ -35,8 +38,8 @@ val tex = Array(     0.0f, 0.0f,  // top left
     						  1.0f, 0.0f,  // bottom left
     						  0.0f, 1.0f,  // top right
     						  1.0f, 0.0f,  // bottom left
-                  1.0f, 1.0f,  // bottom right
-                  0.0f, 1.0f) // top right
+            1.0f, 1.0f,  // bottom right
+            0.0f, 1.0f) // top right
                   
 val sprite = new Sprite( verts, color, tex, texInfo.textureId)
 ```
