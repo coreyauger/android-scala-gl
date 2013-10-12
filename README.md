@@ -40,3 +40,12 @@ val tex = Array(     0.0f, 0.0f,  // top left
                   
 val sprite = new Sprite( verts, color, tex, texInfo.textureId)
 ```
+
+## Example Projects
+I currently use this iib in an Android app "Perspective Correct" that should be out in the google play store soon ~(10/20/2013)
+
+Here is a screen shot of the current app
+![Perspective Correct](http://www.coreyauger.com/images/perspectiveCorrect.png "Perspective Correct")
+
+
+
