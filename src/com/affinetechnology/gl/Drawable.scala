@@ -8,9 +8,7 @@ import android.graphics.BitmapFactory
 import android.opengl.GLUtils
 import com.affinetechnology.draw
 
-abstract class Drawable {
-	def getFragShaderCode : String
-	def getVerrtexShaderCode : String
+abstract class Drawable {	
 	def draw(matrix: Array[Float])	
 }
 
@@ -75,7 +73,7 @@ object Drawable  {
 
 }
 
-class DrawableObject(vshader: String, fshader: String, val verts: Array[Float], val color: Array[Float], val texture: Array[Float], val textureBank: Int = -1, val drawMode: Int = GLES20.GL_TRIANGLES ) extends Drawable {
+abstract class DrawableObject(vshader: String, fshader: String, val verts: Array[Float], val color: Array[Float], val texture: Array[Float], val textureBank: Int = -1, val drawMode: Int = GLES20.GL_TRIANGLES ) extends Drawable {
 	def getVerrtexShaderCode = vshader
 	def getFragShaderCode = fshader	
 	
@@ -136,6 +134,7 @@ class DrawableObject(vshader: String, fshader: String, val verts: Array[Float], 
 	                                     Drawable.COORDS_PER_TEX * 4, textureBuffer);
         
     	}
+    	      
 
         // get handle to vertex shader's vPosition member
         val posHandle = GLES20.glGetAttribLocation(program, "vPosition");
@@ -204,7 +203,7 @@ class Line(v: Array[Float], c: Array[Float]) extends DrawableObject(// This matr
 }
 
 
-class Square(v: Array[Float], c: Array[Float], t: Array[Float], tex:Int )extends DrawableObject(// This matrix member variable provides a hook to manipulate
+class Square(v: Array[Float], c: Array[Float], t: Array[Float], tex:Int ) extends DrawableObject(// This matrix member variable provides a hook to manipulate
         // This matrix member variable provides a hook to manipulate
         // the coordinates of the objects that use this vertex shader
         "uniform mat4 uMVPMatrix;" +
@@ -217,17 +216,80 @@ class Square(v: Array[Float], c: Array[Float], t: Array[Float], tex:Int )extends
         "  gl_Position = vPosition * uMVPMatrix;" +
         "}",
         // the matrix must be included as a modifier of gl_Position
+        if( tex >= 0 )
         "precision mediump float;"+
 		"varying vec2 v_TexCoordinate;"+
 		"uniform sampler2D u_Texture;"+		
 		"void main() {"+
 		  "gl_FragColor = texture2D(u_Texture, v_TexCoordinate);"+
-		"}",
+		"}" else 
+		"precision mediump float;" +
+        "uniform vec4 vColor;" +
+        "void main() {" +
+        "  gl_FragColor = vColor;" +
+        "}",
         v,c, t, tex, GLES20.GL_TRIANGLES){
 }
 
 
 class Sprite(v: Array[Float], c: Array[Float], t: Array[Float], tex:Int ) extends Square(v, c, t, tex )
+
+class CropBox (val maxWidth: Float, val maxHeight: Float, val width: Float, val height: Float, val depth: Float ) extends Drawable {
+  // left -maxWidth/2
+  
+  private val maxHW = (maxWidth/2.0f)
+  private val maxHH = (maxHeight/2.0f)
+  private val hW = width/2.0f
+  private val hH = height/2.0f
+  
+  private val sideW = maxHW - hW
+ 
+  private val blackout = Array(0.0f, 0.0f, 0.0f, 0.7f)
+  
+  private val left = new Square(
+          Array(-sideW, maxHH, depth,   // top left
+                -sideW, -maxHH, depth,   // bottom left
+                 -hW,  maxHH, depth,	  // top right
+                 -sideW, -maxHH, depth,  // bottom left	
+                 -hW, -maxHH, depth,   // bottom right
+                 -hW,  maxHH, depth ),// top right
+          blackout,
+          null, -1)
+  private val right = new Square(
+          Array(sideW, maxHH, depth,   // top left
+                sideW, -maxHH, depth,   // bottom left
+                 hW,  maxHH, depth,	  // top right
+                 sideW, -maxHH, depth,  // bottom left	
+                 hW, -maxHH, depth,   // bottom right
+                 hW,  maxHH, depth ),// top right
+          blackout,
+          null, -1)
+  
+  private val top = new Square(
+          Array(-hW, maxHH, depth,   // top left
+                -hW, hH, depth,   // bottom left
+                 hW,  maxHH, depth,	  // top right
+                 -hW, hH, depth,  // bottom left	
+                 hW, hH, depth,   // bottom right
+                 hW,  maxHH, depth ),// top right
+          blackout,
+          null, -1)
+  private val bottom = new Square(
+          Array(-hW, -maxHH, depth,   // top left
+                -hW, -hH, depth,   // bottom left
+                 hW,  -maxHH, depth,	  // top right
+                 -hW, -hH, depth,  // bottom left	
+                 hW, -hH, depth,   // bottom right
+                 hW,  -maxHH, depth ),// top right
+          blackout,
+          null, -1)
+  
+  private val sides = List(left, right, top, bottom)
+  
+  override def draw(mvpMatrix: Array[Float]) = {
+	  sides.foreach( s => s.draw(mvpMatrix) )
+  }
+}
 
 /*
 
