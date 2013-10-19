@@ -7,9 +7,11 @@ import android.opengl.GLES20
 import android.graphics.BitmapFactory
 import android.opengl.GLUtils
 import com.affinetechnology.draw
+import android.util.Log
+import android.graphics.Rect
 
 abstract class Drawable {	
-	def draw(matrix: Array[Float])	
+	def draw(matrix: Array[Float])		
 }
 
 class TextureInfo( val textureId: Int, val originalWidth: Int, val originalHeight: Int ) {  
@@ -77,16 +79,21 @@ abstract class DrawableObject(vshader: String, fshader: String, val verts: Array
 	def getVerrtexShaderCode = vshader
 	def getFragShaderCode = fshader	
 	
+	def morph(newVerts: Array[Float]) = {
+	  vertexBuffer.put(newVerts)
+	  // set the buffer to read the first coordinate
+	  vertexBuffer.position(0)
+	}
 	
 	val bb = ByteBuffer.allocateDirect(verts.length * 4)
     // use the device hardware's native byte order
     bb.order(ByteOrder.nativeOrder());
     // create a floating point buffer from the ByteBuffer
-    val vertexBuffer = bb.asFloatBuffer();
+    val vertexBuffer = bb.asFloatBuffer
     // add the coordinates to the FloatBuffer
-    vertexBuffer.put(verts);
+    vertexBuffer.put(verts)
     // set the buffer to read the first coordinate
-    vertexBuffer.position(0);
+    vertexBuffer.position(0)
     
     val len = if(texture != null) texture.length else 0
     val bbt = ByteBuffer.allocateDirect( len * 4)
@@ -244,7 +251,53 @@ class CropBox (val maxWidth: Float, val maxHeight: Float, val width: Float, val 
   
   private val sideW = maxHW - hW
  
-  private val blackout = Array(0.0f, 0.0f, 0.0f, 0.7f)
+  private val blackout = Array(0.0f, 0.0f, 0.0f, 0.9f)
+  
+  var lastWidth = hW;
+  var lastHeight = hH;
+  
+  def getCropPoints(): Array[Float] = {
+    // TODO: this got messed and is somehow reversed...
+    //Array(lastWidth, lastHeight, -lastWidth, -lastHeight)
+    Array(lastHeight, lastWidth, -lastHeight, -lastWidth)
+  }
+  
+  def scale(xf: Float, yf: Float) = {
+    val hx = (2.0f) * xf
+    val wx = (2.0f) * yf
+    
+    val h = if( hx < 0 ) 0 else if( hx > maxHH ) maxHH else hx
+    val w = if( wx < 0 ) 0 else if( wx > maxHH ) maxHH else wx
+    
+    lastWidth = w
+    lastHeight = h
+    
+    left.morph(Array(-sideW, maxHH, depth,   // top left
+                -sideW, -maxHH, depth,   // bottom left
+                 -h,  maxHH, depth,	  // top right
+                 -sideW, -maxHH, depth,  // bottom left	
+                 -h, -maxHH, depth,   // bottom right
+                 -h,  maxHH, depth ))// top right)
+
+     right.morph(Array(sideW, maxHH, depth,   // top left
+                sideW, -maxHH, depth,   // bottom left
+                 h,  maxHH, depth,	  // top right
+                 sideW, -maxHH, depth,  // bottom left	
+                 h, -maxHH, depth,   // bottom right
+                 h,  maxHH, depth ))
+    top.morph(Array(-h, maxHH, depth,   // top left
+                -h, w, depth,   // bottom left
+                 h,  maxHH, depth,	  // top right
+                 -h, w, depth,  // bottom left	
+                 h, w, depth,   // bottom right
+                 h,  maxHH, depth ))// top right 
+     bottom.morph(Array(-h, -maxHH, depth,   // top left
+                -h, -w, depth,   // bottom left
+                 h,  -maxHH, depth,	  // top right
+                 -h, -w, depth,  // bottom left	
+                 h, -w, depth,   // bottom right
+                 h,  -maxHH, depth ))// top right 
+  }
   
   private val left = new Square(
           Array(-sideW, maxHH, depth,   // top left
