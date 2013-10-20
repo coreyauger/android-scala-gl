@@ -244,7 +244,7 @@ class Sprite(v: Array[Float], c: Array[Float], t: Array[Float], tex:Int ) extend
 class CropBox (val maxWidth: Float, val maxHeight: Float, val width: Float, val height: Float, val depth: Float ) extends Drawable {
   // left -maxWidth/2
   
-  private val maxHW = (maxWidth/2.0f)
+  private val maxHW = (maxWidth/2.0f)		
   private val maxHH = (maxHeight/2.0f)
   private val hW = width/2.0f
   private val hH = height/2.0f
@@ -258,8 +258,8 @@ class CropBox (val maxWidth: Float, val maxHeight: Float, val width: Float, val 
   
   def getCropPoints(): Array[Float] = {
     // TODO: this got messed and is somehow reversed...
-    //Array(lastWidth, lastHeight, -lastWidth, -lastHeight)
-    Array(lastHeight, lastWidth, -lastHeight, -lastWidth)
+    Array(lastWidth, lastHeight, -lastWidth, -lastHeight)
+    //Array(lastHeight, lastWidth, -lastHeight, -lastWidth)
   }
   
   def scale(xf: Float, yf: Float) = {
