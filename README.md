@@ -52,3 +52,7 @@ Here is a screen shot of the current app
 
 
 
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/coreyauger/android-scala-gl/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
